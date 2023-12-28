@@ -1,1 +1,1 @@
-from asynchronizer import Asynchronizer, asynchronize
+from .asynchronizer import Asynchronizer, asynchronize
