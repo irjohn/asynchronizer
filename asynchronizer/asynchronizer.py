@@ -146,4 +146,5 @@ def _stasks(n=5):
     return tuple(_stask(y, rng.uniform(0, 5)) for y in range(n))
 
 
-print("Testing kali")
+def printme():
+    print("Testing kali")
