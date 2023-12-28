@@ -144,3 +144,6 @@ def _stasks(n=5):
     from random import Random
     rng = Random()
     return tuple(_stask(y, rng.uniform(0, 5)) for y in range(n))
+
+
+print("Testing kali")
