@@ -1,11 +1,8 @@
-import time as _time
-from random import Random as _Random
 import asyncio as _asyncio
 from functools import wraps
 from inspect import iscoroutinefunction as _iscoroutinefunction
 from threading import (
     Thread as _Thread, 
-    Event as _Event
 )
 from atexit import (
     register as _register,
@@ -107,6 +104,7 @@ class asynchronize(Asynchronizer):
 
 
     def __init__(self, func):
+        wraps(func)(self)
         self.func = func
         if not self._thread_started:
             self._thread.start()
