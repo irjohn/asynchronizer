@@ -1,8 +1,11 @@
-from utils import Tasks
 import asyncio
 import threading
-from asynchronizer import get_event_loop, Asynchronizer
+from asynchronizer import (
+    Asynchronizer,
+    get_event_loop,
+)
 
+from asynchronizer.utils import Tasks
 
 async def _atask(n):
     print(f"[async] Starting task {n}")
@@ -22,6 +25,7 @@ async def _atasks(n=5):
 print(Tasks.atasks(5))
 print(Tasks.tasks(2))
 print(threading.enumerate())
+
 
 async def main():
     with Asynchronizer() as executor:
