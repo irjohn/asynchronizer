@@ -4,6 +4,7 @@ import random
 
 from asynchronizer import asynchronize
 
+
 class Tasks:
     RNG = random.Random()
 
