@@ -1,5 +1,6 @@
 from functools import wraps as _wraps
 from asyncio import (
+    set_event_loop_policy as _set_event_loop_policy,
     get_event_loop as _get_event_loop,
     new_event_loop as _new_event_loop,
     set_event_loop as _set_event_loop,
@@ -16,9 +17,12 @@ from atexit import (
     register as _register,
 )
 
+import uvloop as _uvloop
+
 from .thread import AsyncLoopThread as _AsyncLoopThread
 
 
+_set_event_loop_policy(_uvloop.EventLoopPolicy())
 def get_event_loop():
     try:
         loop = _get_event_loop()

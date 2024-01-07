@@ -48,4 +48,6 @@ class TestThreadCount(unittest.TestCase):
 
 
 if __name__ == "__main__":
+    with Asynchronizer() as exc:
+        exc.run(Tasks.atasks)
     pass
