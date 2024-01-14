@@ -70,9 +70,31 @@ class Asynchronizer:
             self._thread.start()
 
 
+    @property
+    def loop(self):
+        if not hasattr(self, "_thread"):
+            self._create_thread()
+        return self._thread._loop
+
+
     def close(self):
         if not self._thread.stopped:
             self._thread.stop()
+
+
+    def create_task(self, func, args=tuple(), kwargs=dict()):
+        self._create_thread()
+
+        if not isinstance(args, (list, set, tuple)):
+            args = (args,)
+
+        if _iscoroutine(func):
+            self.loop.create_task(func)
+
+        if not _iscoroutinefunction(func):
+            print("Nonawaitable cannot be scheduled.")
+
+        self.loop.create_task(func(*args, **kwargs))
 
 
     def run_async(self, func, args=tuple(), kwargs=dict()):
@@ -104,7 +126,7 @@ class asynchronize(Asynchronizer):
         self.func = func
         if not self._thread_started:
             self._thread.start()
-            
+
             asynchronize._thread_started = True
             self._register_handler()
 
