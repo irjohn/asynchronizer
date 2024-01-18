@@ -17,12 +17,12 @@ from atexit import (
     register as _register,
 )
 
-import uvloop as _uvloop
+from uvloop import EventLoopPolicy as _EventLoopPolicy
 
 from .thread import AsyncLoopThread as _AsyncLoopThread
 
 
-_set_event_loop_policy(_uvloop.EventLoopPolicy())
+_set_event_loop_policy(_EventLoopPolicy())
 def get_event_loop():
     try:
         loop = _get_event_loop()
@@ -36,10 +36,13 @@ def get_event_loop():
 
 
 
+# The `Asynchronizer` class provides methods for running functions asynchronously in a separate
+# thread.
 class Asynchronizer:
     def __init__(self):
         self._create_thread()
-        self._register_handler()
+        _register(self.close)
+        #self._register_handler()
 
 
     def __enter__(self):
@@ -53,11 +56,20 @@ class Asynchronizer:
         self.close()
 
 
-    def _register_handler(self):
-        _register(self.close)
-
-
     def _start_background_loop(loop):
+        '''The function starts a background loop and runs it forever if it is not already running.
+
+        Parameters
+        ----------
+        loop
+            The `loop` parameter is an instance of the `asyncio.AbstractEventLoop` class. It represents the
+        event loop that will be used to run asynchronous tasks.
+
+        Returns
+        -------
+            The loop object is being returned.
+
+        '''
         _set_event_loop(loop)
         if not loop.is_running():
             loop.run_forever()
@@ -65,6 +77,8 @@ class Asynchronizer:
 
 
     def _create_thread(self):
+        '''The function creates a thread if it doesn't already exist and starts it.
+        '''
         if not hasattr(self, "_thread"):
             self._thread = _AsyncLoopThread(target=get_event_loop, daemon=True)
             self._thread.start()
@@ -83,6 +97,20 @@ class Asynchronizer:
 
 
     def create_task(self, func, args=tuple(), kwargs=dict()):
+        '''The function creates a task in a separate thread and schedules it for execution.
+
+        Parameters
+        ----------
+        func
+            The `func` parameter is the function that you want to schedule or create a task for. It should be a
+        callable object, such as a function or a coroutine function.
+        args
+            args is a tuple of positional arguments that will be passed to the function when it is called.
+        kwargs
+            The `kwargs` parameter is a dictionary that contains keyword arguments to be passed to the `func`
+        function when it is called. It allows you to specify additional arguments by their names.
+
+        '''
         self._create_thread()
 
         if not isinstance(args, (list, set, tuple)):
@@ -98,6 +126,26 @@ class Asynchronizer:
 
 
     def run_async(self, func, args=tuple(), kwargs=dict()):
+        '''The `run_async` function creates a new thread and runs a given function asynchronously, either as a
+        coroutine or a regular function.
+
+        Parameters
+        ----------
+        func
+            The `func` parameter is the function that you want to run asynchronously. It can be any callable
+        object, such as a function, method, or coroutine function.
+        args
+            args is a tuple of arguments that will be passed to the function when it is called.
+        kwargs
+            The `kwargs` parameter is a dictionary that contains keyword arguments to be passed to the `func`
+        function. These keyword arguments are used when calling the `func` function along with the `args`
+        arguments.
+
+        Returns
+        -------
+            The return value depends on the type of `func`.
+
+        '''
         self._create_thread()
 
         if not isinstance(args, (list, set, tuple)):
@@ -117,6 +165,7 @@ class Asynchronizer:
         return self.run_async(func=func, args=args, kwargs=kwargs)
 
 
+# The `asynchronize` class is a decorator that allows a function to be executed asynchronously.
 class asynchronize(Asynchronizer):
     _thread = _AsyncLoopThread(target=get_event_loop, daemon=True)
     _thread_started = False
@@ -128,7 +177,7 @@ class asynchronize(Asynchronizer):
             self._thread.start()
 
             asynchronize._thread_started = True
-            self._register_handler()
+            _register(self.close)
 
 
     def __call__(self, *args, **kwargs):

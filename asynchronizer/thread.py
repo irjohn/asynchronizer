@@ -1,6 +1,4 @@
 from asyncio import (
-    get_event_loop as _get_event_loop,
-    new_event_loop as _new_event_loop,
     set_event_loop as _set_event_loop,
     sleep as _asleep,
 )
@@ -13,6 +11,8 @@ from threading import (
 
 
 
+# The `AsyncLoopThread` class is a subclass of `_Thread` that runs an asynchronous event loop until it
+# is stopped.
 class AsyncLoopThread(_Thread):
     def __init__(self, *args, **kwargs):
         super(AsyncLoopThread, self).__init__(*args, **kwargs)
@@ -36,7 +36,7 @@ class AsyncLoopThread(_Thread):
                 await _asleep(0.1)
             except:
                 return
-    
+
 
     def stop(self):
         self._stop_event.set()
