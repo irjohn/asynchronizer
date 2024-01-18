@@ -1,4 +1,3 @@
-import asyncio
 import unittest
 import threading
 from asynchronizer import (
@@ -8,28 +7,13 @@ from asynchronizer import (
 
 from asynchronizer.utils import Tasks
 
-async def _atask(n):
-    print(f"[async] Starting task {n}")
-    await asyncio.sleep(2)
-    print(f"[async] Finished task {n}")
-
-    
-async def _atasks(n=5):
-    print(f"[async]({n}) Starting...")
-    async with asyncio.TaskGroup() as tg:
-        tasks = tuple(tg.create_task(_atask(x)) for x in range(n))
-    results = tuple(task.result() for task in tasks)
-    print(f"[async]({n}) Finished")
-    return results
-
-
 import time
 
 class TestThreadCount(unittest.TestCase):
     @property
     def threads(self):
         return threading.enumerate()
-    
+
 
     def test_thread_closure(self):
         self.assertEqual(len(self.threads), 2)
@@ -48,6 +32,4 @@ class TestThreadCount(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    with Asynchronizer() as exc:
-        exc.run(Tasks.atasks)
-    pass
+    unittest.main()
