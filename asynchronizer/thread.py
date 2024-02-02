@@ -30,7 +30,7 @@ class AsyncLoopThread(_Thread):
                     self._loop.stop()
                     self._loop.close()
                     return
-                await _asleep(0.1)
+                await _asleep(0.01)
             except:
                 return
 
