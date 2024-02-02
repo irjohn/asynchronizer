@@ -1,28 +1,22 @@
 from functools import wraps as _wraps
 from asyncio import (
-    set_event_loop_policy as _set_event_loop_policy,
     get_event_loop as _get_event_loop,
     new_event_loop as _new_event_loop,
     set_event_loop as _set_event_loop,
     run_coroutine_threadsafe as _run_coroutine_threadsafe,
 )
-
 from inspect import (
     iscoroutinefunction as _iscoroutinefunction,
     iscoroutine as _iscoroutine,
 )
-
-
 from atexit import (
     register as _register,
 )
 
-from uvloop import EventLoopPolicy as _EventLoopPolicy
 
 from .thread import AsyncLoopThread as _AsyncLoopThread
 
 
-_set_event_loop_policy(_EventLoopPolicy())
 def get_event_loop():
     try:
         loop = _get_event_loop()
@@ -42,7 +36,6 @@ class Asynchronizer:
     def __init__(self):
         self._create_thread()
         _register(self.close)
-        #self._register_handler()
 
 
     def __enter__(self):
@@ -125,7 +118,7 @@ class Asynchronizer:
         self.loop.create_task(func(*args, **kwargs))
 
 
-    def run_async(self, func, args=tuple(), kwargs=dict()):
+    def run_async(self, func, *_args, args=tuple(), kwargs=dict()):
         '''The `run_async` function creates a new thread and runs a given function asynchronously, either as a
         coroutine or a regular function.
 
@@ -148,15 +141,20 @@ class Asynchronizer:
         '''
         self._create_thread()
 
+        if _args:
+            args = (*_args, *args)
+
         if not isinstance(args, (list, set, tuple)):
             args = (args,)
 
         if _iscoroutine(func):
             return _run_coroutine_threadsafe(func, self._thread._loop).result()
 
-        if not _iscoroutinefunction(func):
+        elif not _iscoroutinefunction(func):
             return func(*args, **kwargs)
-        return _run_coroutine_threadsafe(func(*args, **kwargs), self._thread._loop).result()
+
+        else:
+            return _run_coroutine_threadsafe(func(*args, **kwargs), self._thread._loop).result()
 
 
     def run(self, func, *_args, args=tuple(), kwargs=dict()):

@@ -2,13 +2,10 @@ from asyncio import (
     set_event_loop as _set_event_loop,
     sleep as _asleep,
 )
-
-
 from threading import (
     Thread as _Thread,
     Event as _Event,
 )
-
 
 
 # The `AsyncLoopThread` class is a subclass of `_Thread` that runs an asynchronous event loop until it
