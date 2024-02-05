@@ -33,7 +33,13 @@ def get_event_loop():
 # The `Asynchronizer` class provides methods for running functions asynchronously in a separate
 # thread.
 class Asynchronizer:
+    ID = 0
+
     def __init__(self):
+        Asynchronizer.ID += 1
+        self.id = Asynchronizer.ID
+
+        self._loop = _new_event_loop()
         self._create_thread()
         _register(self.close)
 
@@ -49,7 +55,7 @@ class Asynchronizer:
         self.close()
 
 
-    def _start_background_loop(loop):
+    def _start_background_loop(self):
         '''The function starts a background loop and runs it forever if it is not already running.
 
         Parameters
@@ -63,30 +69,22 @@ class Asynchronizer:
             The loop object is being returned.
 
         '''
-        _set_event_loop(loop)
-        if not loop.is_running():
-            loop.run_forever()
-        return loop
+        _set_event_loop(self._loop)
+        return self._loop
 
 
     def _create_thread(self):
         '''The function creates a thread if it doesn't already exist and starts it.
         '''
         if not hasattr(self, "_thread"):
-            self._thread = _AsyncLoopThread(target=get_event_loop, daemon=True)
+            self._thread = _AsyncLoopThread(target=self._start_background_loop, name=f"Asynchronizer-{self.id}", daemon=True)
             self._thread.start()
-
-
-    @property
-    def loop(self):
-        if not hasattr(self, "_thread"):
-            self._create_thread()
-        return self._thread._loop
 
 
     def close(self):
         if not self._thread.stopped:
             self._thread.stop()
+            self._loop.close()
 
 
     def create_task(self, func, args=tuple(), kwargs=dict()):
@@ -154,7 +152,7 @@ class Asynchronizer:
             return func(*args, **kwargs)
 
         else:
-            return _run_coroutine_threadsafe(func(*args, **kwargs), self._thread._loop).result()
+            return _run_coroutine_threadsafe(func(*args, **kwargs), self._loop).result()
 
 
     def run(self, func, *_args, args=tuple(), kwargs=dict()):
@@ -165,22 +163,22 @@ class Asynchronizer:
 
 # The `asynchronize` class is a decorator that allows a function to be executed asynchronously.
 class asynchronize(Asynchronizer):
-    _thread = _AsyncLoopThread(target=get_event_loop, daemon=True)
     _thread_started = False
 
     def __init__(self, func):
-        _wraps(func)(self)
         self.func = func
-        if not self._thread_started:
-            self._thread.start()
+        _wraps(self.func)(self)
 
+        if not self._thread_started:
+            self.__class__._thread = _AsyncLoopThread(target=self._start_background_loop, name="asynchronize-decorator", daemon=True)
+            self._loop = _new_event_loop()
+            self._thread.start()
             asynchronize._thread_started = True
             _register(self.close)
 
 
     def __call__(self, *args, **kwargs):
-        results = self.run_async(self.func, args=args, kwargs=kwargs)
-        return results
+        return self.run_async(self.func, *args, kwargs=kwargs)
 
 
     @classmethod

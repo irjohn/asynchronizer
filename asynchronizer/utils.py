@@ -13,8 +13,9 @@ class Tasks:
         print(f"[async] Starting task {n}")
         await asyncio.sleep(cls.RNG.uniform(0, 3))
         print(f"[async] Finished task {n}")
+        return n
 
-    
+
     @classmethod
     @asynchronize
     async def atasks(cls, n=5):
@@ -30,7 +31,8 @@ class Tasks:
     def task(cls, n):
         print(f"[sync] Starting task {n}")
         time.sleep(cls.RNG.uniform(0, 3))
-        print(f"[sync] Finished task {n}")        
+        print(f"[sync] Finished task {n}")
+        return n
 
 
     @classmethod

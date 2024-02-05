@@ -1,42 +1,38 @@
-from asyncio import (
-    set_event_loop as _set_event_loop,
-    sleep as _asleep,
-)
-from threading import (
-    Thread as _Thread,
-    Event as _Event,
-)
+import asyncio
+import threading
+from time import sleep
 
-
-# The `AsyncLoopThread` class is a subclass of `_Thread` that runs an asynchronous event loop until it
+# The `AsyncLoopThread` class is a subclass of `threading.Thread` that runs an asynchronous event loop until it
 # is stopped.
-class AsyncLoopThread(_Thread):
+class AsyncLoopThread(threading.Thread):
     def __init__(self, *args, **kwargs):
-        super(AsyncLoopThread, self).__init__(*args, **kwargs)
-        self._stop_event = _Event()
-        self._loop = self._target()
+        super().__init__(*args, **kwargs)
+        self._stop_event = threading.Event()
 
 
     def run(self):
-        _set_event_loop(self._loop)
+        self._loop = self._target()
+        asyncio.set_event_loop(self._loop)
         self._stop_task = self._loop.create_task(self.check_stop())
         self._loop.run_forever()
+        return
 
 
     async def check_stop(self):
-        while True:
-            try:
-                if self.stopped:
-                    self._loop.stop()
-                    self._loop.close()
-                    return
-                await _asleep(0.01)
-            except:
-                return
+        while not self.stopped:
+            await asyncio.sleep(0)
+        self.shutdown()
 
+    def shutdown(self):
+        tasks = asyncio.all_tasks(loop=self._loop)
+        for task in tasks:
+            task.cancel()
+        self._loop.stop()
 
     def stop(self):
         self._stop_event.set()
+        while self._loop.is_running():
+            sleep(0.1)
 
 
     @property

@@ -1,18 +1,14 @@
 import unittest
-import threading
-from asynchronizer import (
-    Asynchronizer,
-    get_event_loop,
-)
+from threading import enumerate as threads
 
+from asynchronizer import Asynchronizer, asynchronize
 from asynchronizer.utils import Tasks
 
-import time
 
 class TestThreadCount(unittest.TestCase):
     @property
     def threads(self):
-        return threading.enumerate()
+        return threads()
 
 
     def test_thread_closure(self):
@@ -23,11 +19,10 @@ class TestThreadCount(unittest.TestCase):
         self.assertEqual(len(self.threads), 4)
         a.close()
         b.close()
-        time.sleep(0.25)
+
         self.assertEqual(len(self.threads), 2)
-        with Asynchronizer():
-            self.assertEqual(len(self.threads), 3)
-        time.sleep(0.25)
+        with (Asynchronizer(), Asynchronizer(), Asynchronizer()):
+            self.assertEqual(len(self.threads), 5)
         self.assertEqual(len(self.threads), 2)
 
 
