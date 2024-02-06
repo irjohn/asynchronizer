@@ -2,6 +2,8 @@ import asyncio
 import threading
 from time import sleep
 
+from .utils import create_task
+
 # The `AsyncLoopThread` class is a subclass of `threading.Thread` that runs an asynchronous event loop until it
 # is stopped.
 class AsyncLoopThread(threading.Thread):
@@ -13,7 +15,7 @@ class AsyncLoopThread(threading.Thread):
     def run(self):
         self._loop = self._target()
         asyncio.set_event_loop(self._loop)
-        self._stop_task = self._loop.create_task(self.check_stop())
+        self._stop_task = create_task(self._loop, self.check_stop(), name="Check Stop")
         self._loop.run_forever()
         return
 

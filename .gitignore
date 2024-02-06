@@ -1,5 +1,7 @@
 .vscode/
 play.py
+asynchronizer_dev.sh
+_tasks.py
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

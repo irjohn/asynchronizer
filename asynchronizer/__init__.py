@@ -1,17 +1,15 @@
+__all__ = ("Asynchronizer", "asynchronize")
+
+import asyncio
 from atexit import register
 from functools import wraps
-from asyncio import (
-    new_event_loop,
-    set_event_loop,
-    run_coroutine_threadsafe,
-)
 from inspect import (
     iscoroutinefunction,
     iscoroutine,
 )
 
 from .thread import AsyncLoopThread as _AsyncLoopThread
-
+from .utils import create_task as _create_task
 
 # The `Asynchronizer` class provides methods for running functions asynchronously in a separate
 # thread.
@@ -52,8 +50,9 @@ class Asynchronizer:
     def __init__(self):
         Asynchronizer.ID += 1
         self.id = Asynchronizer.ID
-        self._loop = new_event_loop()
+        self._loop = asyncio.new_event_loop()
         self._create_thread()
+        self._create_task = _create_task
         register(self.close)
 
     def __enter__(self):
@@ -64,6 +63,19 @@ class Asynchronizer:
             from traceback import print_exception
             print_exception(exc_type, exc_value, exc_traceback)
         self.close()
+
+    @property
+    def tasks(self):
+        '''
+        Returns a list of all the tasks that have been scheduled for execution.
+
+        Returns
+        -------
+        tasks : list
+            A list of all the tasks that have been scheduled for execution.
+
+        '''
+        return tuple(task for task in asyncio.all_tasks(self._loop))
 
     def _start_background_loop(self):
         '''
@@ -80,7 +92,7 @@ class Asynchronizer:
             The loop object.
 
         '''
-        set_event_loop(self._loop)
+        asyncio.set_event_loop(self._loop)
         return self._loop
 
     def _create_thread(self):
@@ -99,7 +111,7 @@ class Asynchronizer:
             self._thread.stop()
             self._loop.close()
 
-    def create_task(self, func, args=tuple(), kwargs=dict()):
+    def create_task(self, func, args=tuple(), kwargs=dict(), name=None, context=None):
         '''
         Creates a task in a separate thread and schedules it for execution.
 
@@ -119,12 +131,14 @@ class Asynchronizer:
             args = (args,)
 
         if iscoroutine(func):
-            self.loop.create_task(func)
+            return self._create_task(self._loop, func, name=name, context=context)
+            #return self._loop.create_task(func, name=name, context=context)
 
-        if not iscoroutinefunction(func):
-            print("Nonawaitable cannot be scheduled.")
+        if iscoroutinefunction(func):
+            return self._create_task(self._loop, func(*args, **kwargs), name=name, context=context)
 
-        self.loop.create_task(func(*args, **kwargs))
+        return self._loop.run_in_executor(None, func, *args, **kwargs)
+
 
     def run_async(self, func, *_args, args=tuple(), kwargs=dict()):
         '''
@@ -154,13 +168,13 @@ class Asynchronizer:
             args = (args,)
 
         if iscoroutine(func):
-            return run_coroutine_threadsafe(func, self._thread._loop).result()
+            return asyncio.run_coroutine_threadsafe(func, self._thread._loop).result()
 
         elif not iscoroutinefunction(func):
             return func(*args, **kwargs)
 
         else:
-            return run_coroutine_threadsafe(func(*args, **kwargs), self._loop).result()
+            return asyncio.run_coroutine_threadsafe(func(*args, **kwargs), self._loop).result()
 
     def run(self, func, *_args, args=tuple(), kwargs=dict()):
         '''
@@ -200,7 +214,7 @@ class asynchronize(Asynchronizer):
 
         if not self._thread_started:
             self.__class__._thread = _AsyncLoopThread(target=self._start_background_loop, name="asynchronize-decorator", daemon=True)
-            self._loop = new_event_loop()
+            self.__class__._loop = asyncio.new_event_loop()
             self._thread.start()
             asynchronize._thread_started = True
             register(self.close)
