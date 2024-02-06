@@ -8,7 +8,7 @@ from inspect import (
     iscoroutine,
 )
 
-from .thread import AsyncLoopThread as _AsyncLoopThread
+from .thread import EventLoopThread as _EventLoopThread
 from .utils import create_task as _create_task
 
 # The `Asynchronizer` class provides methods for running functions asynchronously in a separate
@@ -100,7 +100,7 @@ class Asynchronizer:
         The function creates a thread if it doesn't already exist and starts it.
         '''
         if not hasattr(self, "_thread"):
-            self._thread = _AsyncLoopThread(target=self._start_background_loop, name=f"Asynchronizer-{self.id}", daemon=True)
+            self._thread = _EventLoopThread(target=self._start_background_loop, name=f"Asynchronizer-{self.id}", daemon=True)
             self._thread.start()
 
     def close(self):
@@ -213,7 +213,7 @@ class asynchronize(Asynchronizer):
         wraps(self.func)(self)
 
         if not self._thread_started:
-            self.__class__._thread = _AsyncLoopThread(target=self._start_background_loop, name="asynchronize-decorator", daemon=True)
+            self.__class__._thread = _EventLoopThread(target=self._start_background_loop, name="asynchronize-decorator", daemon=True)
             self.__class__._loop = asyncio.new_event_loop()
             self._thread.start()
             asynchronize._thread_started = True

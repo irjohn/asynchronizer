@@ -4,9 +4,9 @@ from time import sleep
 
 from .utils import create_task
 
-# The `AsyncLoopThread` class is a subclass of `threading.Thread` that runs an asynchronous event loop until it
+# The `EventLoopThread` class is a subclass of `threading.Thread` that runs an asynchronous event loop until it
 # is stopped.
-class AsyncLoopThread(threading.Thread):
+class EventLoopThread(threading.Thread):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._stop_event = threading.Event()
