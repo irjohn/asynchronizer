@@ -1,12 +1,12 @@
 import asyncio
 import time
-import random
+from random import Random
 
-from asynchronizer import asynchronize
+from . import asynchronize
 
 
 class Tasks:
-    RNG = random.Random()
+    RNG = Random()
 
     @classmethod
     async def atask(cls, n):
@@ -14,7 +14,6 @@ class Tasks:
         await asyncio.sleep(cls.RNG.uniform(0, 3))
         print(f"[async] Finished task {n}")
         return n
-
 
     @classmethod
     @asynchronize
@@ -26,14 +25,12 @@ class Tasks:
         print(f"[async]({n}) Finished")
         return results
 
-
     @classmethod
     def task(cls, n):
         print(f"[sync] Starting task {n}")
         time.sleep(cls.RNG.uniform(0, 3))
         print(f"[sync] Finished task {n}")
         return n
-
 
     @classmethod
     @asynchronize

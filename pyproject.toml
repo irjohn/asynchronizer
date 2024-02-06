@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "asynchronizer"
+version = "0.1.1"
+authors = [
+    { name = "John Gaddis", email = "normlman@live.com" },
+]
+description = "A class or decorator to help with asynchronous programming in Python within synchronous contexts."
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/irjohn/asynchronizer"

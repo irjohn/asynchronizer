@@ -1,4 +1,3 @@
-```markdown
 # Asynchronizer
 
 This repository contains a Python decorator and class that allow you to run asynchronous code from a synchronous context. This can be particularly useful when you need to perform IO-bound tasks such as making HTTP requests, reading from or writing to a database, or interacting with the file system, but you are working within a synchronous context.
@@ -18,9 +17,9 @@ Here are some examples of how you can use the `asynchronizer` package.
 ### Using the decorator
 
 ```python
-from asynchronizer import async_to_sync
+from asynchronizer import asynchronize
 
-@async_to_sync
+@asynchronize
 async def async_function():
     # Your asynchronous code here
 
@@ -50,4 +49,3 @@ Contributions are welcome! Please read the [CONTRIBUTING.md](CONTRIBUTING.md) fo
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
-```
