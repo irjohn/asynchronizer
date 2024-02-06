@@ -7,7 +7,7 @@ This repository contains a Python decorator and class that allow you to run asyn
 You can install the `asynchronizer` package using pip. Open your terminal and type:
 
 ```bash
-pip install asynchronizer
+pip install pysynchronizer
 ```
 
 ## Usage
@@ -38,9 +38,10 @@ async def async_function():
 
 asynchronizer = Asynchronizer()
 asynchronizer.run(async_function())
+asynchronizer.run_async(async_function())
 ```
 
-In this example, an instance of `Asynchronizer` is created. The `run` method is then used to execute `async_function` from a synchronous context.
+In this example, an instance of `Asynchronizer` is created. The `run` or `run_async` method is then used to execute `async_function` from a synchronous context.
 
 ## Contributing
 
